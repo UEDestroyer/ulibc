@@ -1,5 +1,5 @@
-#include <stddef.h>  // size_t, NULL
-#include <stdint.h>  // uint8_t, int32_t и т.д.
+#include "low-access-UEDestroyer/defines/x86_64/linux.h"
+#include "low-access-UEDestroyer/funcs/linux.h"
 
 size_t strlen(const char* str);
 char* strcpy(char* dst, const char* src);
