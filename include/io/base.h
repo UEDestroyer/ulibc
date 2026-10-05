@@ -4,6 +4,7 @@
 #include "../str/convert.h"
 #include "../str/base.h"
 #include "../mem/base.h"
+#include "../mem/heap.h"
 
 
 int vustrf(int fd, const char* fmt, va_list va);

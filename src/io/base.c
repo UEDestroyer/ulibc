@@ -61,7 +61,6 @@ int vustrf(int fd, const char* fmt, va_list va){
                     pos+=strlen(iTs);
 
                     break;}
-                
                 default:
                     clear
                     isF=false;
@@ -106,9 +105,9 @@ int errf(const char* fmt, ...){
 
 
 
-const char* input(){
+const char* input(){ // not safe, by hand free after call
     size_t capacity = 32;
-    char* buffer = mmap(NULL,capacity+1,1|2,2|32,-1,0);
+    char* buffer = malloc(32 + 1);
     long res = 0;
     size_t readed = 0;
 
@@ -121,7 +120,7 @@ const char* input(){
         }
         if (res<0){
             errf("Error when read stdin: %d", res);
-            munmap(buffer, capacity + 1);
+            free(buffer);
             return NULL;
         }
         readed+=res;
@@ -129,14 +128,13 @@ const char* input(){
             buffer[readed-1] = '\0';break;
         }else if (readed>=capacity){
 
-            char* new_buffer = mmap(NULL, capacity + 32 + 1, 1|2, 2|32, -1, 0);
+            char* new_buffer = malloc(capacity + 32 + 1);
             memcpy(new_buffer, buffer, readed);
-            munmap(buffer, capacity + 1);
+            free(buffer);
             buffer = new_buffer;
             capacity+=32;
         } 
     }
-
 
     return (const char *)buffer;
 }

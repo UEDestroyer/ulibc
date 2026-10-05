@@ -1,5 +1,4 @@
 #include "str/convert.h"
-
 char* itoa(int n, char *buffer) {
     if (!buffer) return 0;
 
@@ -20,7 +19,31 @@ char* itoa(int n, char *buffer) {
 
     return buffer;
 }
+char* itoaD(double n,char* buffer){
+        if (!buffer) return 0;
 
+    size_t pos = 0;
+    unsigned int an = (n < 0) ? (unsigned int)0 - (unsigned int)n : (unsigned int)n;
+    bool lasted = false;
+
+    do {
+        buffer[pos++] = (an % 10) + '0';
+        an /= 10;
+        if (!lasted && an>0 && an<1){
+            lasted = true;
+            buffer[pos++] = ',';
+        }
+    } while (an > 0);
+
+    if (n < 0) {
+        buffer[pos++] = '-';
+    }
+
+    buffer[pos] = '\0';
+    arr_reverse(buffer, pos, 1);
+
+    return buffer;
+}
 int atoi(const char *s) {
     if (!s) return 0;
 

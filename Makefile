@@ -5,7 +5,8 @@ CFLAGS = \
 	-nostdlib \
 	-ffreestanding \
 	-fno-builtin \
-	-fno-stack-protector
+	-fno-stack-protector \
+	-Wno-unused-includes
 
 LDFLAGS = \
 	-nostdlib \

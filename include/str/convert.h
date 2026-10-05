@@ -1,7 +1,9 @@
 #include <stdbool.h>
 #include "mem/base.h"
+#include "mem/arr.h"
 #include "base.h"
 #include "math/base.h"
 
 char* itoa(int n,char* buffer);
-int atio(const char* s);
+char* itoaD(double n,char* buffer);
+int atoi(const char* s);
