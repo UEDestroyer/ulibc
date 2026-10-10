@@ -1,9 +1,9 @@
 #include "str/convert.h"
 
-char* __Ditoa(unsigned long long n, char *buffer, size_t *posT) { // danger without check and reverse
+char* __Ditoa(long long n, char *buffer, size_t *posT) { // danger without check and reverse
 
 #define pos (*posT)
-    unsigned int an = (n < 0) ? (unsigned int)0 - (unsigned int)n : (unsigned int)n;
+    long long an = (n < 0) ? 0LL - n : n;
 
     do {
         buffer[pos++] = (an % 10) + '0';
