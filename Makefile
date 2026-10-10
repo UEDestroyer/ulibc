@@ -1,29 +1,53 @@
-CC = gcc
+CC = clang
+
+CLANG_BUILTIN = /usr/lib/llvm/21/lib/clang/21/include
 
 CFLAGS = \
-	-Iinclude \
-	-nostdlib \
-	-ffreestanding \
-	-fno-builtin \
-	-fno-stack-protector \
-	-Wno-unused-includes
+-nostdinc \
+-Iinclude \
+-Ithird_party \
+-isystem $(CLANG_BUILTIN) \
+-nostdlib \
+-ffreestanding \
+-fno-builtin \
+-fno-stack-protector
+
+RYU_CFLAGS = \
+$(CFLAGS) \
+-Icompatibility/glibc
 
 LDFLAGS = \
-	-nostdlib \
-	-Wl,-no-dynamic-linker,-e,_start
+-nostdlib \
+-Wl,-no-dynamic-linker,-e,_start
 
-START = ./src/one.c
+START = src/one.c
+MAIN = ulibc.c
 
-SRCS = $(filter-out ./src/one.c,$(shell find . -name '*.c'))
+SRC_SRCS = $(filter-out $(START),$(shell find src -name '*.c'))
+RYU_SRCS = $(shell find third_party/ryu -name '*.c')
+
+SRCS = $(START) $(SRC_SRCS) $(RYU_SRCS) $(MAIN)
 
 TARGET = hello
 
+OBJDIR = build/obj
+
+OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
+
 all: $(TARGET)
 
-$(TARGET): $(START) $(SRCS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(START) $(SRCS) -o $@
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) $^ -o $@
+
+$(OBJDIR)/third_party/ryu/%.o: third_party/ryu/%.c
+	mkdir -p $(dir $@)
+	$(CC) $(RYU_CFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: %.c
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(TARGET)
+	rm -rf $(OBJDIR) $(TARGET)
 
 .PHONY: all clean
