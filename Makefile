@@ -14,7 +14,7 @@ CFLAGS = \
 
 RYU_CFLAGS = \
 $(CFLAGS) \
--Icompatibility/glibc
+-Icompability/glibc
 
 LDFLAGS = \
 -nostdlib \
