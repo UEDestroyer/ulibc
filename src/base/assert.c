@@ -17,7 +17,7 @@ void abort(void){
 }
 
 void __assert_fail(const char *assertion,const char *file,unsigned int line,const char *function){
-#define out(aCs) write(1,aCs,strlen(aCs));
+#define out(aCs) ue_write(1,aCs,strlen(aCs));
 
     out("assertion failed: ")
     out(assertion)

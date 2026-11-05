@@ -3,6 +3,7 @@
 #include "str/base.h"
 #include "str/convert.h"
 #include "signal/base.h"
+#include "process.h"
 
 void abort(void);
 

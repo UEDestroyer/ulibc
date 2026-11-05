@@ -2,6 +2,7 @@
 #include "funcs/linux.h"
 #include "defines/flags_linux.h"
 #include "mem/base.h"
+#include "base/process.h"
 
 typedef void (*sighandler_t)(int);
 

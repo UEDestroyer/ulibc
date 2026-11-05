@@ -14,7 +14,7 @@ static void* getNewSize(size_t size){
     if (size + sizeof(BlockHeader)> SIZE ){
         reqSize=ALIGN(size + sizeof(BlockHeader));
     }
-    BlockHeader* header = mmap(NULL,reqSize,PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    BlockHeader* header = ue_mmap(NULL,reqSize,PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     if (header==MAP_FAILED){
         return NULL;
@@ -47,7 +47,7 @@ void Ffree(void* ptr){
         }else {
             first = header->next;
         }
-        munmap(header,ALIGN(header->size +sizeof(BlockHeader)));
+        ue_munmap(header,ALIGN(header->size +sizeof(BlockHeader)));
 
     } else {
         header->is_free = true;

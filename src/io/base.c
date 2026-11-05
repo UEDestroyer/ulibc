@@ -1,140 +1,104 @@
 #include "io/base.h"
 
-int vustrf(int fd, const char* fmt, va_list va){
 
-#define clear do {write(fd,buffer,pos); \
-            res+=pos;pos=0;} while (0);
+DEF_SYSCALL(ssize_t,read,(int fd, void *buf, size_t count),(fd,buf,count))
+DEF_SYSCALL(ssize_t,write,(int fd,const void *buf, size_t count),(fd,buf,count))
+DEF_SYSCALL(int,close,(int fd),(fd))
 
-    char buffer[255];
-    size_t pos = 0;
-    bool isF = false;
-    size_t res = 0;
 
-    for (int i = 0;;i++){
+int open(const char *pathname, int flags, ...)
+{
+    mode_t mode = 0;
 
-        if (pos>=255){
-            clear
-        }
-        if (*(fmt + i)=='\0'){
-            clear
-            break;
-        } 
-        if (*(fmt+i)=='%') {
-            if (isF){
-                if (pos>=255){
-                    clear
-                }
-                buffer[pos++] = '%';
-            }
-            isF=!isF;
-            continue;
-
-        }
-        if (isF){
-            switch (*(fmt+i)) {
-                case 'c':{
-                    int c=va_arg(va,int);
-                    buffer[pos++]=(unsigned char)c;
-                    isF=false;
-                    break;}
-                case 's':{
-                    const char* s=va_arg(va,const char*);isF=false;
-                    clear
-                    if (s==NULL){
-                        write(fd, "(null)", 6);res+=6;
-                    }else {
-                        size_t size = strlen(s);
-                        write(fd, s, size);res+=size;
-                    }
-
-                    break;}
-                case 'd':{
-                    isF = false;
-                    int in = va_arg(va,int);
-                    clear
-                    char iTs[33];
-
-                    itoa(in,iTs);
-
-                    strcpy(buffer, iTs);
-
-                    pos+=strlen(iTs);
-
-                    break;}
-                default:
-                    clear
-                    isF=false;
-                    write(fd, "%" ,1);
-                    write(fd,fmt+i,1);res+=2;
-            }
-            continue;
-        }
-        buffer[pos++]=*(fmt+i);
+    if ((flags & O_CREAT) || ((flags & O_TMPFILE) == O_TMPFILE)) {
+        va_list va;
+        va_start(va, flags);
+        mode = va_arg(va, mode_t);
+        va_end(va);
     }
 
-#undef clear
+    
+    int res = ue_open(pathname, flags, mode);
+    if (res < 0) {
+        __set_errno(-res);
+        return -1;
+    }
+
     return res;
 }
 
-
-int ustrf(int fd,const char* fmt, ...){
-    va_list va;
-    va_start(va,fmt);
-    int ret = vustrf(fd,fmt,va);
-    va_end(va);
-    return ret;
-}
-
-int printf(const char* fmt, ...){
-    va_list va;
-    va_start(va,fmt);
-    int ret = vustrf(1,fmt,va);
-    va_end(va);
-    return ret;
-}
-
-int errf(const char* fmt, ...){
-    va_list va;
-    va_start(va,fmt);
-    int ret = vustrf(2,fmt,va);
-    va_end(va);
-    return ret;
+int creat(const char *pathname, mode_t mode){
+    return ue_open(pathname, O_WRONLY | O_CREAT | O_TRUNC, mode);
 }
 
 
+DEF_SYSCALL(off_t,lseek,(int fd, off_t offset, int whence),(fd,offset,whence))
 
+DEF_SYSCALL(int,dup,(int oldfd),(oldfd))
 
+DEF_SYSCALL(int,dup2,(int oldfd,int newfd),(oldfd,newfd))
 
-const char* input(){ // not safe, by hand free after call
-    size_t capacity = 32;
-    char* buffer = malloc(32 + 1);
-    long res = 0;
-    size_t readed = 0;
+DEF_SYSCALL(int,pipe,(int pipefd[2]),(pipefd))
 
-    while (true){
-        res=read(0,buffer + readed,32);
-        
-        if (res == 0){
-            buffer[readed] = '\0';
+DEF_SYSCALL(ssize_t,pread,(int fd, void *buf, size_t count, off_t offset),(fd,buf,count,offset))
+
+DEF_SYSCALL(ssize_t,pwrite,(int fd,const void *buf, size_t count, off_t offset),(fd,buf,count,offset))
+
+DEF_SYSCALL(int,ftruncate,(int fd, off_t lenght),(fd,lenght))
+
+DEF_SYSCALL(int,fsync,(int fd),(fd))
+DEF_SYSCALL(int, fdatasync,(int fd), (fd))
+
+int fcntl(int fd, int cmd, ...){
+    unsigned long arg = 0;
+    switch (cmd) {
+        case F_GETFD:
+        case F_GETFL:
+        case F_GETOWN:
+            break;
+        case F_DUPFD:
+        case F_SETFD:
+        case F_SETFL:
+        case F_DUPFD_CLOEXEC:
+        case F_SETOWN:
+        case F_SETSIG:
+        {
+            va_list ap;
+            va_start(ap,cmd);
+            arg = (unsigned long)va_arg(ap,int);
+            va_end(ap);
             break;
         }
-        if (res<0){
-            errf("Error when read stdin: %d", res);
-            free(buffer);
-            return NULL;
+        case F_GETLK:
+        case F_SETLK:
+        case F_SETLKW:
+        case F_OFD_GETLK:
+        case F_OFD_SETLK:
+        case F_OFD_SETLKW:
+        {
+            va_list ap;
+            va_start(ap,cmd);
+            arg = (unsigned long)va_arg(ap,struct flock*);
+            va_end(ap);
+            break;
         }
-        readed+=res;
-        if (buffer[readed-1] == '\n'){
-            buffer[readed-1] = '\0';break;
-        }else if (readed>=capacity){
+        case F_GETOWN_EX:
+        case F_SETOWN_EX:
+        {
+            va_list ap;
+            va_start(ap,cmd);
+            arg = (unsigned long)va_arg(ap,struct f_owner_ex*);
+            va_end(ap);
+            break;
+        }
+        default:
+            __set_errno(EINVAL);
+            return -1;
+    } 
 
-            char* new_buffer = malloc(capacity + 32 + 1);
-            memcpy(new_buffer, buffer, readed);
-            free(buffer);
-            buffer = new_buffer;
-            capacity+=32;
-        } 
-    }
-
-    return (const char *)buffer;
+    int res = ue_fcntl(fd,cmd,arg);
+    if (res < 0 && !(cmd == F_GETOWN && res>-4096 && res < 0)){
+        __set_errno(-res);
+        return -1;
+    }return res;
 }

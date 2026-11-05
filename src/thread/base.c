@@ -11,7 +11,7 @@ struct ulibc_tls* get_current_tls(void){
 
 int set_current_tls(struct ulibc_tls *tls){
     tls->self = tls;
-    return arch_prctl(ARCH_SET_FS,(unsigned long)tls);
+    return ue_arch_prctl(ARCH_SET_FS,(unsigned long)tls); // пока только x86_64
 }
 
 

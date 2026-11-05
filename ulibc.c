@@ -1,4 +1,5 @@
 #include "io/base.h"
+#include "io/format.h"
 #include "str/convert.h"
 #include "mem/heap.h"
 #include "thread/base.h"
@@ -9,14 +10,12 @@
 
 void _start(){ 
     thread_init();
-
-    int a = 1;
-
-    assert(a==0);
-
-
     
+    int a = 0;
 
+    assert(a == 0);
     
-    _exit(0);
+    printf("hi, this is all test now\n %d", a);
+
+    ue_exit(0);
 }

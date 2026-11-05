@@ -27,7 +27,7 @@ sighandler_t signal(int signum, sighandler_t handler){
     sig->sa_restorer = (unsigned long long)NULL;
     struct sigaction old;
 
-    int err = rt_sigaction(signum, sig, &old,LINUX_SIGSET_SIZE);
+    int err = ue_rt_sigaction(signum, sig, &old,LINUX_SIGSET_SIZE);
     if (err<0){
         return NULL;
     }
@@ -57,8 +57,8 @@ int sigismember(const sigset_t *set, int signum){
     return (set->__val[(signum - 1) / 64] & (1UL << ((signum - 1) %64))) != 0;
 }
 int raise(int sig){
-    return kill(getpid(),sig);
+    return ue_kill(ue_getpid(),sig);
 }
 int sigprocmask(int how,const sigset_t *set,sigset_t *oldset){
-    return rt_sigprocmask(how,set,oldset,LINUX_SIGSET_SIZE);
+    return ue_rt_sigprocmask(how,set,oldset,LINUX_SIGSET_SIZE);
 }

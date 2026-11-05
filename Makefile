@@ -1,6 +1,9 @@
 CC = clang
 
 CLANG_BUILTIN = /usr/lib/llvm/21/lib/clang/21/include
+CONFIG_FILE := .config
+
+GNU ?= 1
 
 CFLAGS = \
 -nostdinc \
@@ -11,7 +14,6 @@ CFLAGS = \
 -ffreestanding \
 -fno-builtin \
 -fno-stack-protector
-
 RYU_CFLAGS = \
 $(CFLAGS) \
 -Icompability/glibc
@@ -22,7 +24,6 @@ LDFLAGS = \
 
 START = src/one.c
 MAIN = ulibc.c
-
 SRC_SRCS = $(filter-out $(START),$(shell find src -name '*.c'))
 RYU_SRCS = $(shell find third_party/ryu -name '*.c')
 
@@ -34,6 +35,19 @@ OBJDIR = build/obj
 
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 
+include $(CONFIG_FILE)
+include makeMacro
+
+CONFIG_CFLAGS :=
+
+$(eval $(call configCheck, ERRNO_TLS, ERRNO_MACRO))
+$(eval $(call configCheck, GNU, gnu))
+
+
+CFLAGS += $(CONFIG_CFLAGS)
+
+
+$(OBJS): $(CONFIG_FILE)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
