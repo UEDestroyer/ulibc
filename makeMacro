@@ -1,0 +1,9 @@
+define configCheck
+ifeq ($$(CONFIG_$(strip $(1))),y)
+CONFIG_CFLAGS += -D$(strip $(2))=1
+else ifeq ($$(CONFIG_$(strip $(1))),m)
+CONFIG_CFLAGS += -D$(strip $(2))=2
+else
+CONFIG_CFLAGS += -D$(strip $(2))=0
+endif
+endef

@@ -1,0 +1,140 @@
+#include "io/format.h"
+
+
+int vwritef(int fd, const char* fmt, va_list va){
+
+#define clear do {ue_write(fd,buffer,pos); \
+            res+=pos;pos=0;} while (0);
+
+    char buffer[255];
+    size_t pos = 0;
+    bool isF = false;
+    size_t res = 0;
+
+    for (int i = 0;;i++){
+
+        if (pos>=255){
+            clear
+        }
+        if (*(fmt + i)=='\0'){
+            clear
+            break;
+        } 
+        if (*(fmt+i)=='%') {
+            if (isF){
+                if (pos>=255){
+                    clear
+                }
+                buffer[pos++] = '%';
+            }
+            isF=!isF;
+            continue;
+
+        }
+        if (isF){
+            switch (*(fmt+i)) {
+                case 'c':{
+                    int c=va_arg(va,int);
+                    buffer[pos++]=(unsigned char)c;
+                    isF=false;
+                    break;}
+                case 's':{
+                    const char* s=va_arg(va,const char*);isF=false;
+                    clear
+                    if (s==NULL){
+                        ue_write(fd, "(null)", 6);res+=6;
+                    }else {
+                        size_t size = strlen(s);
+                        ue_write(fd, s, size);res+=size;
+                    }
+
+                    break;}
+                case 'd':{
+                    isF = false;
+                    int in = va_arg(va,int);
+                    clear
+                    char iTs[33];
+
+                    itoa(in,iTs);
+
+                    strcpy(buffer, iTs);
+
+                    pos+=strlen(iTs);
+
+                    break;}
+                default:
+                    clear
+                    isF=false;
+                    ue_write(fd, "%" ,1);
+                    ue_write(fd,fmt+i,1);res+=2;
+            }
+            continue;
+        }
+        buffer[pos++]=*(fmt+i);
+    }
+
+#undef clear
+    return res;
+}
+
+
+int writef(int fd,const char* fmt, ...){
+    va_list va;
+    va_start(va,fmt);
+    int ret = vwritef(fd,fmt,va);
+    va_end(va);
+    return ret;
+}
+
+int printf(const char* fmt, ...){
+    va_list va;
+    va_start(va,fmt);
+    int ret = vwritef(1,fmt,va);
+    va_end(va);
+    return ret;
+}
+
+int errf(const char* fmt, ...){
+    va_list va;
+    va_start(va,fmt);
+    int ret = vwritef(2,fmt,va);
+    va_end(va);
+    return ret;
+}
+
+
+
+
+const char* input(){ // not safe, by hand free after call
+    size_t capacity = 32;
+    char* buffer = malloc(32 + 1);
+    long res = 0;
+    size_t readed = 0;
+
+    while (true){
+        res=ue_read(0,buffer + readed,32);
+        
+        if (res == 0){
+            buffer[readed] = '\0';
+            break;
+        }
+        if (res<0){
+            errf("Error when read stdin: %d", res);
+            free(buffer);
+            return NULL;
+        }
+        readed+=res;
+        if (buffer[readed-1] == '\n'){
+            buffer[readed-1] = '\0';break;
+        }else if (readed>=capacity){
+
+            char* new_buffer = malloc(capacity + 32 + 1);
+            memcpy(new_buffer, buffer, readed);
+            free(buffer);
+            buffer = new_buffer;
+            capacity+=32;
+        } 
+    }
+
+    return (const char *)buffer;
+}
